@@ -1,0 +1,21 @@
+#botao_soma_1:hover{
+	background-size: 120% 120%;
+}
+
+#botao_reset {
+	border-radius: 50%;
+	font-size: 22px;
+}
+
+#botao_reset:hover,
+#botao_soma_1:hover,
+#digito:hover{
+	font-size: 24px;
+	background: #E6E6FA;
+}
+
+#digito,
+#visor{
+	font-size: 22px;
+}
+
