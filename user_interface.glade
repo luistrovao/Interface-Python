@@ -4,8 +4,12 @@
   <requires lib="gtk+" version="3.22"/>
   <object class="GtkListStore" id="liststore1">
     <columns>
-      <!-- column-name var -->
-      <column type="gchar"/>
+      <!-- column-name Variavéis -->
+      <column type="gchararray"/>
+      <!-- column-name Input -->
+      <column type="GtkSelectionMode"/>
+      <!-- column-name Output -->
+      <column type="GtkSelectionMode"/>
     </columns>
   </object>
   <object class="GtkWindow" id="main_window">
@@ -248,11 +252,13 @@
           <object class="GtkBox" id="view_variaveis">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="orientation">vertical</property>
             <child>
               <object class="GtkTreeView">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="halign">center</property>
+                <property name="hexpand">False</property>
+                <property name="vexpand">False</property>
                 <property name="model">liststore1</property>
                 <property name="enable_grid_lines">both</property>
                 <child internal-child="selection">
@@ -260,7 +266,35 @@
                 </child>
                 <child>
                   <object class="GtkTreeViewColumn">
-                    <property name="title" translatable="yes">column</property>
+                    <property name="title" translatable="yes">Variável</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="Variável"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn">
+                    <property name="title" translatable="yes">Input</property>
+                    <child>
+                      <object class="GtkCellRendererSpin" id="Input"/>
+                      <attributes>
+                        <attribute name="adjustment">1</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn">
+                    <property name="title" translatable="yes">Output</property>
+                    <child>
+                      <object class="GtkCellRendererSpin" id="Output"/>
+                      <attributes>
+                        <attribute name="adjustment">2</attribute>
+                      </attributes>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -268,23 +302,6 @@
                 <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="mostrar_header">
-                <property name="label" translatable="yes">Confirmar Inputs/Outputs</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="halign">center</property>
-                <property name="margin_top">10</property>
-                <property name="margin_bottom">10</property>
-                <signal name="clicked" handler="on_mostrar_header_clicked" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
               </packing>
             </child>
           </object>
