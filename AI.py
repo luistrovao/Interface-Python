@@ -5,9 +5,39 @@ from gi.repository import Gtk, Gdk
 import pandas as pd
 
 
-class user():
-    def __init__(self, var):
-        self.Variaveis = var
+class filtros():
+    def __init__(self):
+        self.funcoes = {
+            "nao_numerico": self.nao_num,
+            "quartiles": self.quartiles,
+        }
+
+    def nao_num(self, base):
+        # Converte para Dataframe
+        DF = pd.DataFrame(base)
+        # Converte String para NaN
+        DF[DF.columns[1:len(DF.columns)]] = DF[DF.columns[1:len(DF.columns)]].apply(pd.to_numeric, errors='coerce')
+        # Apaga as linhas com valores NaN
+        DF = DF.dropna()
+        # Reseta os indices do novo dataframe
+        DF.reset_index(drop=True, inplace=True)
+        return DF
+
+    def quartiles(self, base):
+        DF = pd.DataFrame(base)
+
+        columns = list(DF)
+
+        # OBS: FALTANTE CHECAR VALORES NEGATIVOS
+
+        Q1 = DF.quantile(0.25, axis=0, numeric_only=True, interpolation='linear')
+        Q3 = DF.quantile(0.75, axis=0, numeric_only=True, interpolation='linear')
+        IQR = Q3 - Q1
+
+        lim_inf = Q1 - 1.5 * IQR
+        lim_sup = Q3 + 1.5 * IQR
+
+        return lim_sup, lim_inf
 
 
 class Manipulador():
@@ -15,11 +45,8 @@ class Manipulador():
         self.modelo_armazenamento: Gtk.ListStore = Builder.get_object("liststore1")
         self.Stack: Gtk.Stack = Builder.get_object("stack")
         self.pasta: Gtk.FileChooserDialog = Builder.get_object('local_base')
-        self.banco_dados = []
-        self.model = Gtk.ListStore(str)
-        self.liststore = Gtk.ListStore(str, str)
-
-
+        self.entradas = []
+        self.saidas = []
 
     def on_button_login_clicked(self, button):
         email = Builder.get_object("email").get_text()
@@ -35,7 +62,6 @@ class Manipulador():
             self.mensagem('Bem vindo', 'Usuario Logado com Sucesso', 'emblem-default')
             self.Stack.set_visible_child_name("view_inicial")
             Window.props.icon_name = 'avatar-default'
-
         else:
             self.mensagem('Aviso', 'E-mail ou senha incorretos', 'dialog-error')
 
@@ -45,7 +71,7 @@ class Manipulador():
         if response == Gtk.ResponseType.OK:
             print("File Selected" + self.pasta.get_filename())
         elif response == Gtk.ResponseType.CANCEL:
-            print('Cancel Clicked')
+            print('Cancelado')
 
     def on_button_selecionar_clicked(self, button):
         self.pasta.hide()
@@ -55,15 +81,38 @@ class Manipulador():
         self.endereco.set_text(self.arquivo)
 
     def on_confirmar_clicked(self, button):
-        base = pd.read_csv(self.arquivo, sep=';', engine='python', decimal=",")
-        aux = base.columns.values
+
+        self.base = pd.read_csv(self.arquivo, sep=';', engine='python', decimal=",")
+        aux = self.base.columns.values
         aux = aux.reshape(len(aux), 1)
-        self.model.append(aux)
-        print(aux.reshape(len(aux), 1))
-        self.banco_dados.append(aux)
-        print(self.banco_dados)
-        #self.Stack.set_visible_child_name('view_variaveis')
-        self.liststore.append(aux)
+        self.Stack.set_visible_child_name('view_variaveis')
+
+        for row in aux:
+            self.modelo_armazenamento.append((str(row), False, False, 0, 0))
+
+    def on_Input_toggled(self, widget, path):
+        self.modelo_armazenamento[path][1] = not self.modelo_armazenamento[path][1]
+
+    def on_Output_toggled(self, widget, path):
+        self.modelo_armazenamento[path][2] = not self.modelo_armazenamento[path][2]
+
+    def on_aplicar_clicked(self, button):
+        self.entradas.clear()
+        self.saidas.clear()
+
+        for row in self.modelo_armazenamento:
+            self.entradas.append(row[1])
+            self.saidas.append(row[2])
+
+        print(self.entradas)
+
+        filtro = filtros()
+        TESTE = filtro.funcoes['nao_numerico'](self.base)
+        lim_sup,lim_inf = filtro.funcoes['quartiles'](TESTE)
+        #print(lim_inf," ", lim_sup)
+
+        for row in self.modelo_armazenamento:
+            row[3].set_value(lim_inf[row.iter])
 
 
     def on_button_cancelar_clicked(self, button):
