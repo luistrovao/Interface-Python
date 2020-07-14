@@ -40,8 +40,6 @@ class filtros():
 
         return lim_sup, lim_inf
 
-
-
 class Manipulador():
     def __init__(self):
         self.modelo_armazenamento: Gtk.ListStore = Builder.get_object("liststore1")
@@ -91,9 +89,8 @@ class Manipulador():
         aux = self.base.columns.values
         aux = aux.reshape(len(aux), 1)
         self.Stack.set_visible_child_name('view_variaveis')
-
         for row in aux:
-            self.treeiter = self.modelo_armazenamento.append((str(row), False, False, 0, 0))
+            self.modelo_armazenamento.append((str(row), False, False, 0, 0))
 
     def on_Input_toggled(self, widget, path):
         self.modelo_armazenamento[path][1] = not self.modelo_armazenamento[path][1]
@@ -106,9 +103,8 @@ class Manipulador():
         self.saidas.clear()
 
         filtro = filtros()
-        TESTE = filtro.funcoes['nao_numerico'](self.base)
-        lim_sup,lim_inf = filtro.funcoes['quartiles'](TESTE)
-        print(lim_inf[0])
+        nao_num = filtro.funcoes['nao_numerico'](self.base)
+        lim_sup,lim_inf = filtro.funcoes['quartiles'](nao_num)
 
         for row in self.modelo_armazenamento:
             self.entradas.append(row[1])
@@ -119,14 +115,18 @@ class Manipulador():
                 self.modelo_armazenamento[i][3] = lim_inf[i-1]
                 self.modelo_armazenamento[i][4] = lim_sup[i-1]
 
+    def on_lim_sup_edited(self, widget, path, text):
+        self.modelo_armazenamento[path][4] = float(text)
 
-
-
-
+    def on_lim_inf_edited(self, widget, path, text):
+        self.modelo_armazenamento[path][3] = float(text)
 
     def on_button_cancelar_clicked(self, button):
         self.pasta.hide()
         self.Stack.set_visible_child_name('view_inicial')
+
+    def on_avancar_clicked(self,button):
+        pass
 
     def mensagem(self, param, param1, param2):
         mensagem: Gtk.MessageDialog = Builder.get_object("mensagem")

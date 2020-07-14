@@ -321,11 +321,14 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn">
+                      <object class="GtkTreeViewColumn" id="Lim_Inf">
                         <property name="sizing">autosize</property>
                         <property name="title" translatable="yes">Lim. Inferior</property>
                         <child>
-                          <object class="GtkCellRendererText" id="lim_inf"/>
+                          <object class="GtkCellRendererText" id="lim_inf">
+                            <property name="editable">True</property>
+                            <signal name="edited" handler="on_lim_inf_edited" swapped="no"/>
+                          </object>
                           <attributes>
                             <attribute name="text">3</attribute>
                           </attributes>
@@ -337,7 +340,10 @@
                         <property name="sizing">fixed</property>
                         <property name="title" translatable="yes">Lim. Superior</property>
                         <child>
-                          <object class="GtkCellRendererText" id="lim_sup"/>
+                          <object class="GtkCellRendererText" id="lim_sup">
+                            <property name="editable">True</property>
+                            <signal name="edited" handler="on_lim_sup_edited" swapped="no"/>
+                          </object>
                           <attributes>
                             <attribute name="text">4</attribute>
                           </attributes>
@@ -352,16 +358,103 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="aplicar">
-                    <property name="label">gtk-apply</property>
+                  <object class="GtkBox">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
-                    <property name="use_stock">True</property>
-                    <property name="always_show_image">True</property>
-                    <signal name="clicked" handler="on_aplicar_clicked" swapped="no"/>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="margin_left">15</property>
+                            <property name="margin_right">15</property>
+                            <property name="margin_start">5</property>
+                            <property name="margin_top">5</property>
+                            <property name="label" translatable="yes">Nº de Clusters Desejados</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="n_clusters">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="halign">center</property>
+                            <property name="valign">center</property>
+                            <property name="margin_start">60</property>
+                            <property name="margin_end">60</property>
+                            <property name="margin_top">5</property>
+                            <property name="margin_bottom">5</property>
+                            <property name="width_chars">5</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButtonBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <property name="layout_style">start</property>
+                        <child>
+                          <object class="GtkButton" id="aplicar">
+                            <property name="label">gtk-apply</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="halign">center</property>
+                            <property name="valign">center</property>
+                            <property name="use_stock">True</property>
+                            <property name="always_show_image">True</property>
+                            <signal name="clicked" handler="on_aplicar_clicked" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="avancar">
+                            <property name="label">gtk-go-forward</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="use_stock">True</property>
+                            <property name="always_show_image">True</property>
+                            <signal name="clicked" handler="on_avancar_clicked" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
