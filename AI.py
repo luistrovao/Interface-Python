@@ -5,6 +5,7 @@ from gi.repository import Gtk, Gdk
 import pandas as pd
 
 
+
 class filtros():
     def __init__(self):
         self.funcoes = {
@@ -40,10 +41,14 @@ class filtros():
         return lim_sup, lim_inf
 
 
+
 class Manipulador():
     def __init__(self):
         self.modelo_armazenamento: Gtk.ListStore = Builder.get_object("liststore1")
+        self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
+        self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
         self.Stack: Gtk.Stack = Builder.get_object("stack")
+
         self.pasta: Gtk.FileChooserDialog = Builder.get_object('local_base')
         self.entradas = []
         self.saidas = []
@@ -88,7 +93,7 @@ class Manipulador():
         self.Stack.set_visible_child_name('view_variaveis')
 
         for row in aux:
-            self.modelo_armazenamento.append((str(row), False, False, 0, 0))
+            self.treeiter = self.modelo_armazenamento.append((str(row), False, False, 0, 0))
 
     def on_Input_toggled(self, widget, path):
         self.modelo_armazenamento[path][1] = not self.modelo_armazenamento[path][1]
@@ -100,19 +105,23 @@ class Manipulador():
         self.entradas.clear()
         self.saidas.clear()
 
+        filtro = filtros()
+        TESTE = filtro.funcoes['nao_numerico'](self.base)
+        lim_sup,lim_inf = filtro.funcoes['quartiles'](TESTE)
+        print(lim_inf[0])
+
         for row in self.modelo_armazenamento:
             self.entradas.append(row[1])
             self.saidas.append(row[2])
 
-        print(self.entradas)
+        for i in range(len(self.modelo_armazenamento)):
+            if self.entradas[i] == True or self.saidas[i] == True:
+                self.modelo_armazenamento[i][3] = lim_inf[i-1]
+                self.modelo_armazenamento[i][4] = lim_sup[i-1]
 
-        filtro = filtros()
-        TESTE = filtro.funcoes['nao_numerico'](self.base)
-        lim_sup,lim_inf = filtro.funcoes['quartiles'](TESTE)
-        #print(lim_inf," ", lim_sup)
 
-        for row in self.modelo_armazenamento:
-            row[3].set_value(lim_inf[row.iter])
+
+
 
 
     def on_button_cancelar_clicked(self, button):
