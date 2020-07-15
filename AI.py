@@ -3,7 +3,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 import pandas as pd
-
+import numpy as np
 
 
 class filtros():
@@ -11,6 +11,7 @@ class filtros():
         self.funcoes = {
             "nao_numerico": self.nao_num,
             "quartiles": self.quartiles,
+            "clusterizacao": self.clusters,
         }
 
     def nao_num(self, base):
@@ -26,7 +27,6 @@ class filtros():
 
     def quartiles(self, base):
         DF = pd.DataFrame(base)
-
         columns = list(DF)
 
         # OBS: FALTANTE CHECAR VALORES NEGATIVOS
@@ -34,11 +34,22 @@ class filtros():
         Q1 = DF.quantile(0.25, axis=0, numeric_only=True, interpolation='linear')
         Q3 = DF.quantile(0.75, axis=0, numeric_only=True, interpolation='linear')
         IQR = Q3 - Q1
-
         lim_inf = Q1 - 1.5 * IQR
         lim_sup = Q3 + 1.5 * IQR
 
         return lim_sup, lim_inf
+
+    def clusters(self, n_clusters, base):
+        from sklearn.cluster import KMeans
+
+        kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+
+        kmeans.fit(base)
+        base['K classes'] = kmeans.labels_
+        base.reset_index(drop=True, inplace=True)
+
+        return base
+
 
 class Manipulador():
     def __init__(self):
@@ -46,10 +57,12 @@ class Manipulador():
         self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
         self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
         self.Stack: Gtk.Stack = Builder.get_object("stack")
-
+        self.N_cluster: Gtk.Entry = Builder.get_object("n_clusters")
         self.pasta: Gtk.FileChooserDialog = Builder.get_object('local_base')
         self.entradas = []
         self.saidas = []
+        self.maximas = []
+        self.minimas = []
 
     def on_button_login_clicked(self, button):
         email = Builder.get_object("email").get_text()
@@ -102,9 +115,9 @@ class Manipulador():
         self.entradas.clear()
         self.saidas.clear()
 
-        filtro = filtros()
-        nao_num = filtro.funcoes['nao_numerico'](self.base)
-        lim_sup,lim_inf = filtro.funcoes['quartiles'](nao_num)
+        self.filtro = filtros()
+        nao_num = self.filtro.funcoes['nao_numerico'](self.base)
+        lim_sup, lim_inf = self.filtro.funcoes['quartiles'](nao_num)
 
         for row in self.modelo_armazenamento:
             self.entradas.append(row[1])
@@ -112,8 +125,27 @@ class Manipulador():
 
         for i in range(len(self.modelo_armazenamento)):
             if self.entradas[i] == True or self.saidas[i] == True:
-                self.modelo_armazenamento[i][3] = lim_inf[i-1]
-                self.modelo_armazenamento[i][4] = lim_sup[i-1]
+                self.modelo_armazenamento[i][3] = lim_inf[i - 1]
+                self.modelo_armazenamento[i][4] = lim_sup[i - 1]
+
+        # ---------- Retirar depois -------------
+        for i in range(len(self.modelo_armazenamento)):
+            if self.entradas[i] == True or self.saidas[i] == True:
+                self.minimas.append(self.modelo_armazenamento[i][3])
+                self.maximas.append(self.modelo_armazenamento[i][4])
+
+        aux = np.logical_or(self.entradas, self.saidas)
+        self.maximas = np.asarray(self.maximas).reshape(1, len(self.maximas))
+        self.minimas = np.asarray(self.minimas).reshape(1, len(self.minimas))
+
+        self.base_aux = self.base.drop(self.base.iloc[:, ~aux], axis=1)
+        self.base_aux = self.base_aux.where(self.base_aux < self.maximas)
+        self.base_aux = self.base_aux.where(self.base_aux > self.minimas)
+        self.base_aux.dropna(inplace=True)
+
+        print(self.N_cluster.get_text())
+
+        self.base_aux = self.filtro.funcoes['clusterizacao'](int(self.N_cluster.get_text()),self.base_aux)
 
     def on_lim_sup_edited(self, widget, path, text):
         self.modelo_armazenamento[path][4] = float(text)
@@ -125,7 +157,7 @@ class Manipulador():
         self.pasta.hide()
         self.Stack.set_visible_child_name('view_inicial')
 
-    def on_avancar_clicked(self,button):
+    def on_avancar_clicked(self, button):
         pass
 
     def mensagem(self, param, param1, param2):
