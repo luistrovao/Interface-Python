@@ -5,7 +5,6 @@ from gi.repository import Gtk, Gdk
 import pandas as pd
 import numpy as np
 
-
 class filtros():
     def __init__(self):
         self.funcoes = {
@@ -41,7 +40,7 @@ class filtros():
 
     def clusters(self, n_clusters, base):
         from sklearn.cluster import KMeans
-
+        pass
         kmeans = KMeans(n_clusters=n_clusters, random_state=0)
 
         kmeans.fit(base)
@@ -54,6 +53,9 @@ class filtros():
 class Manipulador():
     def __init__(self):
         self.modelo_armazenamento: Gtk.ListStore = Builder.get_object("liststore1")
+        self.lista_entradas: Gtk.ListStore = Builder.get_object("liststore2")
+        self.lista_saidas: Gtk.ListStore = Builder.get_object("liststore3")
+
         self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
         self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
         self.Stack: Gtk.Stack = Builder.get_object("stack")
@@ -63,6 +65,8 @@ class Manipulador():
         self.saidas = []
         self.maximas = []
         self.minimas = []
+        self.entradas_label = []
+        self.saidas_label = []
 
     def on_button_login_clicked(self, button):
         email = Builder.get_object("email").get_text()
@@ -128,25 +132,6 @@ class Manipulador():
                 self.modelo_armazenamento[i][3] = lim_inf[i - 1]
                 self.modelo_armazenamento[i][4] = lim_sup[i - 1]
 
-        # ---------- Retirar depois -------------
-        for i in range(len(self.modelo_armazenamento)):
-            if self.entradas[i] == True or self.saidas[i] == True:
-                self.minimas.append(self.modelo_armazenamento[i][3])
-                self.maximas.append(self.modelo_armazenamento[i][4])
-
-        aux = np.logical_or(self.entradas, self.saidas)
-        self.maximas = np.asarray(self.maximas).reshape(1, len(self.maximas))
-        self.minimas = np.asarray(self.minimas).reshape(1, len(self.minimas))
-
-        self.base_aux = self.base.drop(self.base.iloc[:, ~aux], axis=1)
-        self.base_aux = self.base_aux.where(self.base_aux < self.maximas)
-        self.base_aux = self.base_aux.where(self.base_aux > self.minimas)
-        self.base_aux.dropna(inplace=True)
-
-        print(self.N_cluster.get_text())
-
-        self.base_aux = self.filtro.funcoes['clusterizacao'](int(self.N_cluster.get_text()),self.base_aux)
-
     def on_lim_sup_edited(self, widget, path, text):
         self.modelo_armazenamento[path][4] = float(text)
 
@@ -158,7 +143,40 @@ class Manipulador():
         self.Stack.set_visible_child_name('view_inicial')
 
     def on_avancar_clicked(self, button):
-        pass
+        self.Stack.set_visible_child_name('view_base')
+        for i in range(len(self.modelo_armazenamento)):
+            if self.entradas[i] == True:
+
+                self.entradas_label.append(self.modelo_armazenamento[i][0])
+                #self.lista_entradas.append(str(self.modelo_armazenamento[i][0]))
+                self.minimas.append(self.modelo_armazenamento[i][3])
+                self.maximas.append(self.modelo_armazenamento[i][4])
+
+            if self.saidas[i] == True:
+
+                self.saidas_label.append(self.modelo_armazenamento[i][0])
+                #self.lista_saidas.append(self.modelo_armazenamento[i][0])
+                self.minimas.append(self.modelo_armazenamento[i][3])
+                self.maximas.append(self.modelo_armazenamento[i][4])
+
+        for row in self.entradas_label:
+           self.lista_entradas.append((row))
+        #for row in self.saidas_label:
+        #    self.lista_saidas.append((str(row)))
+
+        aux = np.logical_or(self.entradas, self.saidas)
+        self.maximas = np.asarray(self.maximas).reshape(1, len(self.maximas))
+        self.minimas = np.asarray(self.minimas).reshape(1, len(self.minimas))
+
+        self.base_aux = self.base.drop(self.base.iloc[:, ~aux], axis=1)
+        self.base_aux = self.base_aux.where(self.base_aux < self.maximas)
+        self.base_aux = self.base_aux.where(self.base_aux > self.minimas)
+        self.base_aux.dropna(inplace=True)
+
+        #### CLUSTERIZAÇÃO -- NECESSITA SKLEARN
+        n_cl = int(self.N_cluster.get_text())
+        self.base_aux = self.filtro.funcoes['clusterizacao'](n_cl,self.base_aux)
+        print(self.base_aux)
 
     def mensagem(self, param, param1, param2):
         mensagem: Gtk.MessageDialog = Builder.get_object("mensagem")
