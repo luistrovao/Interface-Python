@@ -171,7 +171,21 @@ class Manipulador():
         #### CLUSTERIZAÇÃO -- NECESSITA SKLEARN
         n_cl = int(self.N_cluster.get_text())
         self.base_aux = self.filtro.funcoes['clusterizacao'](n_cl, self.base_aux)
-        print(self.base_aux)
+
+    def on_treinar_rna_clicked(self, button):
+        self.Stack.set_visible_child_name('view_rna')
+
+    def on_treinar_dt_clicked(self, button):
+        self.Stack.set_visible_child_name('view_dt')
+
+    def on_estimar_clicked(self, button):
+        self.Stack.set_visible_child_name('view_estima')
+
+    def on_escolhe_in_out_clicked(self,button):
+        self.Stack.set_visible_child_name('view_variaveis')
+
+    def on_voltar_clicked(self,button):
+        self.Stack.set_visible_child_name('view_base')
 
     def mensagem(self, param, param1, param2):
         mensagem: Gtk.MessageDialog = Builder.get_object("mensagem")
