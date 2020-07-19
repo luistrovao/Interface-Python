@@ -2,6 +2,7 @@
 <!-- Generated with glade 3.36.0 -->
 <interface>
   <requires lib="gtk+" version="3.22"/>
+  <object class="GtkEntryBuffer" id="entrybuffer1"/>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -31,6 +32,22 @@
     <columns>
       <!-- column-name saidas -->
       <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore4">
+    <columns>
+      <!-- column-name erro_cluster_text -->
+      <column type="gchararray"/>
+      <!-- column-name erro_cluster_num -->
+      <column type="gfloat"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore5">
+    <columns>
+      <!-- column-name erro_cluster_text -->
+      <column type="gchararray"/>
+      <!-- column-name erro_cluster_num -->
+      <column type="gfloat"/>
     </columns>
   </object>
   <object class="GtkWindow" id="main_window">
@@ -442,6 +459,7 @@
                             <property name="margin_top">5</property>
                             <property name="margin_bottom">5</property>
                             <property name="width_chars">5</property>
+                            <property name="text" translatable="yes">1</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -498,6 +516,22 @@
                             <property name="expand">True</property>
                             <property name="fill">True</property>
                             <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="botao_base">
+                            <property name="label">gtk-go-back</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="use_stock">True</property>
+                            <property name="always_show_image">True</property>
+                            <signal name="clicked" handler="on_botao_base_clicked" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">2</property>
                           </packing>
                         </child>
                       </object>
@@ -843,7 +877,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry">
+                      <object class="GtkEntry" id="rna_epochs">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="valign">center</property>
@@ -884,7 +918,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry">
+                      <object class="GtkEntry" id="rna_BS">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="halign">baseline</property>
@@ -926,7 +960,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry">
+                      <object class="GtkEntry" id="rna_1cam">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="halign">center</property>
@@ -969,7 +1003,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry">
+                      <object class="GtkEntry" id="rna_2cam">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="halign">center</property>
@@ -1070,7 +1104,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton">
+                      <object class="GtkButton" id="button_treinar_RNA">
                         <property name="label" translatable="yes">Treinar Rede</property>
                         <property name="name">Treinar Rede</property>
                         <property name="visible">True</property>
@@ -1078,6 +1112,7 @@
                         <property name="receives_default">True</property>
                         <property name="margin_top">10</property>
                         <property name="margin_bottom">10</property>
+                        <signal name="clicked" handler="on_button_treinar_RNA_clicked" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1115,12 +1150,35 @@
                       <object class="GtkTreeView">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="margin_start">5</property>
-                        <property name="margin_end">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
+                        <property name="margin_start">10</property>
+                        <property name="margin_end">10</property>
+                        <property name="margin_top">10</property>
+                        <property name="margin_bottom">10</property>
+                        <property name="model">liststore4</property>
                         <child internal-child="selection">
                           <object class="GtkTreeSelection"/>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn">
+                            <property name="title" translatable="yes">Cluster Nº</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="erro_cluster_text"/>
+                              <attributes>
+                                <attribute name="text">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn">
+                            <property name="title" translatable="yes">Erro %</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="erro_cluster_num"/>
+                              <attributes>
+                                <attribute name="text">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
                         </child>
                       </object>
                     </child>
@@ -1146,7 +1204,7 @@
                         <property name="margin_top">5</property>
                         <property name="margin_bottom">5</property>
                         <property name="label" translatable="yes">Erro Médio de Treinamento</property>
-                        <property name="xalign">0,50000000000000000000</property>
+                        <property name="xalign">0</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                         </attributes>
@@ -1478,14 +1536,37 @@
                         <property name="can_focus">True</property>
                         <property name="margin_left">5</property>
                         <property name="margin_right">5</property>
-                        <property name="margin_start">5</property>
-                        <property name="margin_end">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
+                        <property name="margin_start">10</property>
+                        <property name="margin_end">10</property>
+                        <property name="margin_top">10</property>
+                        <property name="margin_bottom">10</property>
                         <property name="hexpand">False</property>
                         <property name="vexpand">False</property>
+                        <property name="model">liststore5</property>
                         <child internal-child="selection">
                           <object class="GtkTreeSelection"/>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn">
+                            <property name="title" translatable="yes">Cluster Nº</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="erro_cluster_dt_text"/>
+                              <attributes>
+                                <attribute name="text">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn">
+                            <property name="title" translatable="yes">Erro %</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="erro_cluster_dt_num"/>
+                              <attributes>
+                                <attribute name="text">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
                         </child>
                       </object>
                     </child>
@@ -1513,7 +1594,7 @@
                         <property name="margin_top">5</property>
                         <property name="margin_bottom">5</property>
                         <property name="label" translatable="yes">Erro Médio de Treinamento</property>
-                        <property name="xalign">0,50000000000000000000</property>
+                        <property name="xalign">0</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                         </attributes>

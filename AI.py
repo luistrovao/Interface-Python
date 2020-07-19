@@ -1,10 +1,58 @@
 import gi
-
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 import pandas as pd
 import numpy as np
+#import keras
+#from keras.models import Sequential
+#from keras.layers import Dense
 
+class algoritmos_AI():
+    def __init__(self):
+        self.tipos = {
+            "RNA_2C": self.rede_neural_2camadas,
+        }
+
+    def rede_neural_2camadas(self,base,n_layer1,n_layer2,Epochs,BatchSize,n_clusters,entradas,saidas):
+
+        from sklearn.model_selection import train_test_split
+
+        classes = []
+        df = base
+
+        i = 0
+        while i < n_clusters:
+            classes.append(df.loc[df['K classes'] == i])
+            i += 1
+
+        df = df.drop('K classes', axis=1)
+
+        dados = []
+        i = 0
+        previsoes = []
+        resultados = []
+        layer1 = n_layer1
+        layer2 = n_layer2
+        Ep = Epochs
+        BS = BatchSize
+
+        while i < n_clusters:
+            #dados.append(train_test_split(classes[i], test_size=0.2))
+            print(dados[0][0].loc[:, entradas])
+            regressor = Sequential()
+            regressor.add(Dense(units=layer1, activation='relu', input_dim=39))
+            regressor.add(Dense(units=layer2, activation='relu'))
+            regressor.add(Dense(units=1, activation='linear'))
+            regressor.compile(loss='mean_absolute_percentage_error', optimizer='Adamax',
+                              metrics=['mean_absolute_percentage_error'])
+            i += 1
+
+            #regressor.fit(dados[i][0].loc[:, entradas], dados[i][0].loc[:, saidas], batch_size=BS, epochs=Ep)
+            #previsoes.append(regressor.predict(dados[i][1].iloc[:, 0:39]))
+            #nome_modelo = 'modelo_csm_NN_' + str(i) + '.h5'
+            #fullname = os.path.join(outdir, nome_modelo)
+            #regressor.save(fullname)
+            #resultados.append(regressor.evaluate(dados[i][1].iloc[:, 0:39], dados[i][1]['Potencia_Ativa_Total']))
 
 class filtros():
     def __init__(self):
@@ -50,24 +98,33 @@ class filtros():
 
         return base
 
-
 class Manipulador():
     def __init__(self):
+
+        self.Stack: Gtk.Stack = Builder.get_object("stack")
+
+        self.pasta: Gtk.FileChooserDialog = Builder.get_object('local_base')
+
         self.modelo_armazenamento: Gtk.ListStore = Builder.get_object("liststore1")
         self.lista_entradas: Gtk.ListStore = Builder.get_object("liststore2")
         self.lista_saidas: Gtk.ListStore = Builder.get_object("liststore3")
 
+        self.epocas: Gtk.Entry = Builder.get_object("rna_epochs")
+        self.BS: Gtk.Entry = Builder.get_object("rna_BS")
+        self.layer1: Gtk.Entry = Builder.get_object("rna_1cam")
+        self.layer2: Gtk.Entry = Builder.get_object("rna_2cam")
+        self.N_cluster: Gtk.Entry = Builder.get_object("n_clusters")
+
         self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
         self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
-        self.Stack: Gtk.Stack = Builder.get_object("stack")
-        self.N_cluster: Gtk.Entry = Builder.get_object("n_clusters")
-        self.pasta: Gtk.FileChooserDialog = Builder.get_object('local_base')
+
         self.entradas = []
         self.saidas = []
         self.maximas = []
         self.minimas = []
         self.entradas_label = []
         self.saidas_label = []
+
 
     def on_button_login_clicked(self, button):
         email = Builder.get_object("email").get_text()
@@ -130,6 +187,7 @@ class Manipulador():
 
         for i in range(len(self.modelo_armazenamento)):
             if self.entradas[i] == True or self.saidas[i] == True:
+                # TRATAR ERRO QUARTILES QUANDO VALORES DE STRING
                 self.modelo_armazenamento[i][3] = lim_inf[i - 1]
                 self.modelo_armazenamento[i][4] = lim_sup[i - 1]
 
@@ -168,12 +226,22 @@ class Manipulador():
         self.base_aux = self.base_aux.where(self.base_aux > self.minimas)
         self.base_aux.dropna(inplace=True)
 
-        #### CLUSTERIZAÇÃO -- NECESSITA SKLEARN
-        n_cl = int(self.N_cluster.get_text())
-        self.base_aux = self.filtro.funcoes['clusterizacao'](n_cl, self.base_aux)
+        self.n_cl = int(self.N_cluster.get_text())
+        self.base_aux = self.filtro.funcoes['clusterizacao'](self.n_cl, self.base_aux)
 
     def on_treinar_rna_clicked(self, button):
         self.Stack.set_visible_child_name('view_rna')
+
+    def on_button_treinar_RNA_clicked(self,button):
+        self.alg_IA = algoritmos_AI()
+
+        epocas = self.epocas.get_text()
+        BS = self.BS.get_text()
+        layer1 = self.layer1.get_text()
+        layer2 = self.layer2.get_text()
+
+        self.teste = self.alg_IA.tipos['RNA_2C'](self.base_aux,layer1,layer2,epocas,BS,
+                                                 self.n_cl,self.entradas_label,self.saidas_label)
 
     def on_treinar_dt_clicked(self, button):
         self.Stack.set_visible_child_name('view_dt')
@@ -186,6 +254,10 @@ class Manipulador():
 
     def on_voltar_clicked(self,button):
         self.Stack.set_visible_child_name('view_base')
+
+    def on_botao_base_clicked(self,button):
+        self.modelo_armazenamento.clear()
+        self.Stack.set_visible_child_name('view_inicial')
 
     def mensagem(self, param, param1, param2):
         mensagem: Gtk.MessageDialog = Builder.get_object("mensagem")
