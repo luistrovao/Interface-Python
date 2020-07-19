@@ -5,6 +5,7 @@ from gi.repository import Gtk, Gdk
 import pandas as pd
 import numpy as np
 
+
 class filtros():
     def __init__(self):
         self.funcoes = {
@@ -107,7 +108,7 @@ class Manipulador():
         aux = aux.reshape(len(aux), 1)
         self.Stack.set_visible_child_name('view_variaveis')
         for row in aux:
-            self.modelo_armazenamento.append((str(row), False, False, 0, 0))
+            self.modelo_armazenamento.append((row[0], False, False, 0, 0))
 
     def on_Input_toggled(self, widget, path):
         self.modelo_armazenamento[path][1] = not self.modelo_armazenamento[path][1]
@@ -146,23 +147,17 @@ class Manipulador():
         self.Stack.set_visible_child_name('view_base')
         for i in range(len(self.modelo_armazenamento)):
             if self.entradas[i] == True:
-
                 self.entradas_label.append(self.modelo_armazenamento[i][0])
-                #self.lista_entradas.append(str(self.modelo_armazenamento[i][0]))
+                self.lista_entradas.append([self.modelo_armazenamento[i][0]])
                 self.minimas.append(self.modelo_armazenamento[i][3])
                 self.maximas.append(self.modelo_armazenamento[i][4])
 
             if self.saidas[i] == True:
-
                 self.saidas_label.append(self.modelo_armazenamento[i][0])
-                #self.lista_saidas.append(self.modelo_armazenamento[i][0])
+                self.lista_saidas.append([self.modelo_armazenamento[i][0]])
                 self.minimas.append(self.modelo_armazenamento[i][3])
                 self.maximas.append(self.modelo_armazenamento[i][4])
 
-        for row in self.entradas_label:
-           self.lista_entradas.append((row))
-        #for row in self.saidas_label:
-        #    self.lista_saidas.append((str(row)))
 
         aux = np.logical_or(self.entradas, self.saidas)
         self.maximas = np.asarray(self.maximas).reshape(1, len(self.maximas))
@@ -175,7 +170,7 @@ class Manipulador():
 
         #### CLUSTERIZAÇÃO -- NECESSITA SKLEARN
         n_cl = int(self.N_cluster.get_text())
-        self.base_aux = self.filtro.funcoes['clusterizacao'](n_cl,self.base_aux)
+        self.base_aux = self.filtro.funcoes['clusterizacao'](n_cl, self.base_aux)
         print(self.base_aux)
 
     def mensagem(self, param, param1, param2):
