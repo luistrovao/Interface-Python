@@ -3,6 +3,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 import pandas as pd
+import numpy as np
 
 
 class filtros():
@@ -10,6 +11,7 @@ class filtros():
         self.funcoes = {
             "nao_numerico": self.nao_num,
             "quartiles": self.quartiles,
+            "clusterizacao": self.clusters,
         }
 
     def nao_num(self, base):
@@ -25,7 +27,6 @@ class filtros():
 
     def quartiles(self, base):
         DF = pd.DataFrame(base)
-
         columns = list(DF)
 
         # OBS: FALTANTE CHECAR VALORES NEGATIVOS
@@ -33,20 +34,40 @@ class filtros():
         Q1 = DF.quantile(0.25, axis=0, numeric_only=True, interpolation='linear')
         Q3 = DF.quantile(0.75, axis=0, numeric_only=True, interpolation='linear')
         IQR = Q3 - Q1
-
         lim_inf = Q1 - 1.5 * IQR
         lim_sup = Q3 + 1.5 * IQR
 
         return lim_sup, lim_inf
 
+    def clusters(self, n_clusters, base):
+        from sklearn.cluster import KMeans
+        pass
+        kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+
+        kmeans.fit(base)
+        base['K classes'] = kmeans.labels_
+        base.reset_index(drop=True, inplace=True)
+
+        return base
+
 
 class Manipulador():
     def __init__(self):
         self.modelo_armazenamento: Gtk.ListStore = Builder.get_object("liststore1")
+        self.lista_entradas: Gtk.ListStore = Builder.get_object("liststore2")
+        self.lista_saidas: Gtk.ListStore = Builder.get_object("liststore3")
+
+        self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
+        self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
         self.Stack: Gtk.Stack = Builder.get_object("stack")
+        self.N_cluster: Gtk.Entry = Builder.get_object("n_clusters")
         self.pasta: Gtk.FileChooserDialog = Builder.get_object('local_base')
         self.entradas = []
         self.saidas = []
+        self.maximas = []
+        self.minimas = []
+        self.entradas_label = []
+        self.saidas_label = []
 
     def on_button_login_clicked(self, button):
         email = Builder.get_object("email").get_text()
@@ -86,9 +107,8 @@ class Manipulador():
         aux = self.base.columns.values
         aux = aux.reshape(len(aux), 1)
         self.Stack.set_visible_child_name('view_variaveis')
-
         for row in aux:
-            self.modelo_armazenamento.append((str(row), False, False, 0, 0))
+            self.modelo_armazenamento.append((row[0], False, False, 0, 0))
 
     def on_Input_toggled(self, widget, path):
         self.modelo_armazenamento[path][1] = not self.modelo_armazenamento[path][1]
@@ -100,24 +120,58 @@ class Manipulador():
         self.entradas.clear()
         self.saidas.clear()
 
+        self.filtro = filtros()
+        nao_num = self.filtro.funcoes['nao_numerico'](self.base)
+        lim_sup, lim_inf = self.filtro.funcoes['quartiles'](nao_num)
+
         for row in self.modelo_armazenamento:
             self.entradas.append(row[1])
             self.saidas.append(row[2])
 
-        print(self.entradas)
+        for i in range(len(self.modelo_armazenamento)):
+            if self.entradas[i] == True or self.saidas[i] == True:
+                self.modelo_armazenamento[i][3] = lim_inf[i - 1]
+                self.modelo_armazenamento[i][4] = lim_sup[i - 1]
 
-        filtro = filtros()
-        TESTE = filtro.funcoes['nao_numerico'](self.base)
-        lim_sup,lim_inf = filtro.funcoes['quartiles'](TESTE)
-        #print(lim_inf," ", lim_sup)
+    def on_lim_sup_edited(self, widget, path, text):
+        self.modelo_armazenamento[path][4] = float(text)
 
-        for row in self.modelo_armazenamento:
-            row[3].set_value(lim_inf[row.iter])
-
+    def on_lim_inf_edited(self, widget, path, text):
+        self.modelo_armazenamento[path][3] = float(text)
 
     def on_button_cancelar_clicked(self, button):
         self.pasta.hide()
         self.Stack.set_visible_child_name('view_inicial')
+
+    def on_avancar_clicked(self, button):
+        self.Stack.set_visible_child_name('view_base')
+        for i in range(len(self.modelo_armazenamento)):
+            if self.entradas[i] == True:
+                self.entradas_label.append(self.modelo_armazenamento[i][0])
+                self.lista_entradas.append([self.modelo_armazenamento[i][0]])
+                self.minimas.append(self.modelo_armazenamento[i][3])
+                self.maximas.append(self.modelo_armazenamento[i][4])
+
+            if self.saidas[i] == True:
+                self.saidas_label.append(self.modelo_armazenamento[i][0])
+                self.lista_saidas.append([self.modelo_armazenamento[i][0]])
+                self.minimas.append(self.modelo_armazenamento[i][3])
+                self.maximas.append(self.modelo_armazenamento[i][4])
+
+
+        aux = np.logical_or(self.entradas, self.saidas)
+        self.maximas = np.asarray(self.maximas).reshape(1, len(self.maximas))
+        self.minimas = np.asarray(self.minimas).reshape(1, len(self.minimas))
+
+        self.base_aux = self.base.drop(self.base.iloc[:, ~aux], axis=1)
+        self.base_aux = self.base_aux.where(self.base_aux < self.maximas)
+        self.base_aux = self.base_aux.where(self.base_aux > self.minimas)
+        self.base_aux.dropna(inplace=True)
+
+        #### CLUSTERIZAÇÃO -- NECESSITA SKLEARN
+        n_cl = int(self.N_cluster.get_text())
+        self.base_aux = self.filtro.funcoes['clusterizacao'](n_cl, self.base_aux)
+        print(self.base_aux)
 
     def mensagem(self, param, param1, param2):
         mensagem: Gtk.MessageDialog = Builder.get_object("mensagem")
