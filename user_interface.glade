@@ -252,6 +252,7 @@
                 <property name="margin_top">5</property>
                 <property name="margin_bottom">5</property>
                 <property name="editable">False</property>
+                <property name="text" translatable="yes">C:\msys64\home\luist\Interface-Python\Teste.csv</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1331,7 +1332,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry">
+                      <object class="GtkEntry" id="max_dep">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="valign">center</property>
@@ -1373,7 +1374,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry">
+                      <object class="GtkEntry" id="n_estimators">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="valign">center</property>
@@ -1481,7 +1482,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="volta">
+                          <object class="GtkButton" id="train_tree">
                             <property name="label" translatable="yes">Treinar Árvore</property>
                             <property name="name">Treinar Rede</property>
                             <property name="visible">True</property>
@@ -1489,7 +1490,7 @@
                             <property name="receives_default">True</property>
                             <property name="margin_top">10</property>
                             <property name="margin_bottom">10</property>
-                            <signal name="clicked" handler="on_voltar_clicked" swapped="no"/>
+                            <signal name="clicked" handler="on_train_tree_clicked" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>

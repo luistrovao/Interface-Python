@@ -1,31 +1,45 @@
 import gi
+
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 import pandas as pd
 import numpy as np
-#import keras
-#from keras.models import Sequential
-#from keras.layers import Dense
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import AdaBoostRegressor
+
+
+# import keras
+# from keras.models import Sequential
+# from keras.layers import Dense
 
 class algoritmos_AI():
     def __init__(self):
         self.tipos = {
             "RNA_2C": self.rede_neural_2camadas,
+            "Dec_Tree": self.decision_tree,
         }
 
-    def rede_neural_2camadas(self,base,n_layer1,n_layer2,Epochs,BatchSize,n_clusters,entradas,saidas):
+    def split_clusters(self, base, n_clusters):
+
+        self.classes = []
+        self.df = base
+
+        i = 0
+        while i < n_clusters:
+            self.classes.append(self.df.loc[self.df['K classes'] == i])
+            i += 1
+
+        self.df = self.df.drop('K classes', axis=1)
+
+    def rede_neural_2camadas(self, base, n_layer1, n_layer2, Epochs, BatchSize, n_clusters, entradas, saidas):
 
         from sklearn.model_selection import train_test_split
 
         classes = []
         df = base
 
-        i = 0
-        while i < n_clusters:
-            classes.append(df.loc[df['K classes'] == i])
-            i += 1
-
-        df = df.drop('K classes', axis=1)
+        algoritmos_AI().split_clusters(base, n_clusters)
 
         dados = []
         i = 0
@@ -37,8 +51,10 @@ class algoritmos_AI():
         BS = BatchSize
 
         while i < n_clusters:
-            #dados.append(train_test_split(classes[i], test_size=0.2))
+            # dados.append(train_test_split(self.classes[i], test_size=0.2))
             print(dados[0][0].loc[:, entradas])
+            print(dados[i][0].iloc[:,0:N_inputs])
+
             regressor = Sequential()
             regressor.add(Dense(units=layer1, activation='relu', input_dim=39))
             regressor.add(Dense(units=layer2, activation='relu'))
@@ -47,12 +63,58 @@ class algoritmos_AI():
                               metrics=['mean_absolute_percentage_error'])
             i += 1
 
-            #regressor.fit(dados[i][0].loc[:, entradas], dados[i][0].loc[:, saidas], batch_size=BS, epochs=Ep)
-            #previsoes.append(regressor.predict(dados[i][1].iloc[:, 0:39]))
-            #nome_modelo = 'modelo_csm_NN_' + str(i) + '.h5'
-            #fullname = os.path.join(outdir, nome_modelo)
-            #regressor.save(fullname)
-            #resultados.append(regressor.evaluate(dados[i][1].iloc[:, 0:39], dados[i][1]['Potencia_Ativa_Total']))
+            regressor.fit(dados[i][0].loc[:, entradas], dados[i][0].loc[:, saidas], batch_size=BS, epochs=Ep)
+            previsoes.append(regressor.predict(dados[i][1].loc[:, entradas]))
+            nome_modelo = 'modelo_csm_NN_' + str(i) + '.h5'
+            fullname = os.path.join(outdir, nome_modelo)
+            regressor.save(fullname)
+            resultados.append(regressor.evaluate(dados[i][1].loc[:, entradas], dados[i][1].loc[:, saidas]))
+
+    def decision_tree(self, base, max_dep, n_estim, n_clusters, entradas, saidas):
+
+        self.classes = []
+        self.df = base
+
+        i = 0
+        while i < n_clusters:
+            self.classes.append(self.df.loc[self.df['K classes'] == i])
+            i += 1
+
+        self.df = self.df.drop('K classes', axis=1)
+
+        #%algoritmos_AI().split_clusters(base, n_clusters)
+
+        regr = AdaBoostRegressor(DecisionTreeRegressor(max_depth=max_dep),
+                                 n_estimators=n_estim, random_state=None)
+        dados = []
+        i = 0
+        previsoes = []
+        resultados = []
+        modelo = []
+        k = 0
+        N_inputs = len(entradas)
+        N_outputs = len(saidas)
+
+        while i < n_clusters:
+            dados.append(train_test_split(self.classes[i], test_size=0.2))
+            modelo.append([0] * N_outputs)
+            previsoes.append([0] * N_outputs)
+            resultados.append([0] * N_outputs)
+            while k < N_outputs:
+                modelo[i][k] = regr.fit(dados[i][0].loc[:, entradas], dados[i][0].loc[:, saidas[k]])
+                previsoes[i][k] = regr.predict(dados[i][1].loc[:, entradas])
+                resultados[i][k] = np.mean(100 * abs(np.asarray(dados[i][1].loc[:, saidas[k]]) -
+                                                     previsoes[i][k]) / np.asarray(dados[i][1].loc[:, saidas[k]]))
+                #nome_modelo = 'modelo_DT_dsm_' + str(i) + '-' + str(k) + '.pkl'
+                #fullname = os.path.join(outdir, nome_modelo)
+                #with open(fullname, 'wb') as file:
+                #    pickle.dump(regr, file)
+                print(np.mean(np.asarray(resultados[i][:])))
+                k += 1
+            k = 0
+            i += 1
+
+
 
 class filtros():
     def __init__(self):
@@ -89,7 +151,7 @@ class filtros():
 
     def clusters(self, n_clusters, base):
         from sklearn.cluster import KMeans
-        pass
+
         kmeans = KMeans(n_clusters=n_clusters, random_state=0)
 
         kmeans.fit(base)
@@ -97,6 +159,7 @@ class filtros():
         base.reset_index(drop=True, inplace=True)
 
         return base
+
 
 class Manipulador():
     def __init__(self):
@@ -114,6 +177,8 @@ class Manipulador():
         self.layer1: Gtk.Entry = Builder.get_object("rna_1cam")
         self.layer2: Gtk.Entry = Builder.get_object("rna_2cam")
         self.N_cluster: Gtk.Entry = Builder.get_object("n_clusters")
+        self.max_depth: Gtk.Entry = Builder.get_object("max_dep")
+        self.N_estimator: Gtk.Entry = Builder.get_object("n_estimators")
 
         self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
         self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
@@ -125,7 +190,6 @@ class Manipulador():
         self.entradas_label = []
         self.saidas_label = []
 
-
     def on_button_login_clicked(self, button):
         email = Builder.get_object("email").get_text()
         senha = Builder.get_object("senha").get_text()
@@ -136,12 +200,13 @@ class Manipulador():
         Gtk.main_quit()
 
     def login(self, email, senha, lembrar):
-        if email == 'a' and senha == 'a':
-            self.mensagem('Bem vindo', 'Usuario Logado com Sucesso', 'emblem-default')
-            self.Stack.set_visible_child_name("view_inicial")
-            Window.props.icon_name = 'avatar-default'
-        else:
-            self.mensagem('Aviso', 'E-mail ou senha incorretos', 'dialog-error')
+        #if email == 'a' and senha == 'a':
+        #    self.mensagem('Bem vindo', 'Usuario Logado com Sucesso', 'emblem-default')
+        #    self.Stack.set_visible_child_name("view_inicial")
+        #    Window.props.icon_name = 'avatar-default'
+        #else:
+        #    self.mensagem('Aviso', 'E-mail ou senha incorretos', 'dialog-error')
+        self.Stack.set_visible_child_name("view_inicial")
 
     def on_seleciona_base_clicked(self, button):
         self.pasta.show_all()
@@ -159,7 +224,7 @@ class Manipulador():
         self.endereco.set_text(self.arquivo)
 
     def on_confirmar_clicked(self, button):
-
+        self.arquivo = "C:\msys64\home\luist\Interface-Python\Teste.csv"
         self.base = pd.read_csv(self.arquivo, sep=';', engine='python', decimal=",")
         aux = self.base.columns.values
         aux = aux.reshape(len(aux), 1)
@@ -216,7 +281,6 @@ class Manipulador():
                 self.minimas.append(self.modelo_armazenamento[i][3])
                 self.maximas.append(self.modelo_armazenamento[i][4])
 
-
         aux = np.logical_or(self.entradas, self.saidas)
         self.maximas = np.asarray(self.maximas).reshape(1, len(self.maximas))
         self.minimas = np.asarray(self.minimas).reshape(1, len(self.minimas))
@@ -232,30 +296,39 @@ class Manipulador():
     def on_treinar_rna_clicked(self, button):
         self.Stack.set_visible_child_name('view_rna')
 
-    def on_button_treinar_RNA_clicked(self,button):
+    def on_button_treinar_RNA_clicked(self, button):
         self.alg_IA = algoritmos_AI()
 
-        epocas = self.epocas.get_text()
-        BS = self.BS.get_text()
-        layer1 = self.layer1.get_text()
-        layer2 = self.layer2.get_text()
+        epocas = int(self.epocas.get_text())
+        BS = int(self.BS.get_text())
+        layer1 = int(self.layer1.get_text())
+        layer2 = int(self.layer2.get_text())
 
-        self.teste = self.alg_IA.tipos['RNA_2C'](self.base_aux,layer1,layer2,epocas,BS,
-                                                 self.n_cl,self.entradas_label,self.saidas_label)
+        self.teste = self.alg_IA.tipos['RNA_2C'](self.base_aux, layer1, layer2, epocas, BS,
+                                                 self.n_cl, self.entradas_label, self.saidas_label)
 
     def on_treinar_dt_clicked(self, button):
         self.Stack.set_visible_child_name('view_dt')
 
+    def on_train_tree_clicked(self, button):
+        self.alg_IA = algoritmos_AI()
+
+        max_dep = int(self.max_depth.get_text())
+        n_estim = int(self.N_estimator.get_text())
+
+        self.teste = self.alg_IA.tipos['Dec_Tree'](self.base_aux, max_dep, n_estim, self.n_cl,
+                                                   self.entradas_label, self.saidas_label)
+
     def on_estimar_clicked(self, button):
         self.Stack.set_visible_child_name('view_estima')
 
-    def on_escolhe_in_out_clicked(self,button):
+    def on_escolhe_in_out_clicked(self, button):
         self.Stack.set_visible_child_name('view_variaveis')
 
-    def on_voltar_clicked(self,button):
+    def on_voltar_clicked(self, button):
         self.Stack.set_visible_child_name('view_base')
 
-    def on_botao_base_clicked(self,button):
+    def on_botao_base_clicked(self, button):
         self.modelo_armazenamento.clear()
         self.Stack.set_visible_child_name('view_inicial')
 
