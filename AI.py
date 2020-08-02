@@ -7,7 +7,12 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor
+import matplotlib.pyplot as plt
 
+from matplotlib.figure import Figure
+from numpy import arange, pi, random, linspace
+import matplotlib.cm as cm
+from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 
 # import keras
 # from keras.models import Sequential
@@ -82,8 +87,6 @@ class algoritmos_AI():
 
         self.df = self.df.drop('K classes', axis=1)
 
-        #%algoritmos_AI().split_clusters(base, n_clusters)
-
         regr = AdaBoostRegressor(DecisionTreeRegressor(max_depth=max_dep),
                                  n_estimators=n_estim, random_state=None)
         dados = []
@@ -94,6 +97,7 @@ class algoritmos_AI():
         k = 0
         N_inputs = len(entradas)
         N_outputs = len(saidas)
+        figuras = []
 
         while i < n_clusters:
             dados.append(train_test_split(self.classes[i], test_size=0.2))
@@ -105,15 +109,28 @@ class algoritmos_AI():
                 previsoes[i][k] = regr.predict(dados[i][1].loc[:, entradas])
                 resultados[i][k] = np.mean(100 * abs(np.asarray(dados[i][1].loc[:, saidas[k]]) -
                                                      previsoes[i][k]) / np.asarray(dados[i][1].loc[:, saidas[k]]))
+
                 #nome_modelo = 'modelo_DT_dsm_' + str(i) + '-' + str(k) + '.pkl'
                 #fullname = os.path.join(outdir, nome_modelo)
                 #with open(fullname, 'wb') as file:
                 #    pickle.dump(regr, file)
-                print(np.mean(np.asarray(resultados[i][:])))
+                #amostras = len(previsoes)
+                #X = range(amostras)
+                #figuras.append(plt.figure(figsize=(6, 2.5)))
+                #plt.plot(X, dados[i][1].loc[:, saidas[k]], color="crimson",label="Dados Reais", linewidth=0.5)
+                #plt.plot(X,previsoes[i][k] , color="dodgerblue",
+                #         alpha = 0.9,c="red", linestyle='dashed', label="Dados do Modelo", linewidth = 0.5)
+                #plt.grid(True)
+                #plt.xlabel("Dados")
+                #plt.ylabel("Potência Ativa")
+                #plt.title("Neural Network Regression")
+                #plt.legend()
                 k += 1
             k = 0
             i += 1
 
+
+        return resultados
 
 
 class filtros():
@@ -171,6 +188,7 @@ class Manipulador():
         self.modelo_armazenamento: Gtk.ListStore = Builder.get_object("liststore1")
         self.lista_entradas: Gtk.ListStore = Builder.get_object("liststore2")
         self.lista_saidas: Gtk.ListStore = Builder.get_object("liststore3")
+        self.lista_dt: Gtk.ListStore = Builder.get_object("liststore5")
 
         self.epocas: Gtk.Entry = Builder.get_object("rna_epochs")
         self.BS: Gtk.Entry = Builder.get_object("rna_BS")
@@ -182,6 +200,9 @@ class Manipulador():
 
         self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
         self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
+
+        self.grafico = Builder.get_object('graf')
+        self.janela_grafico = Builder.get_object('grafico')
 
         self.entradas = []
         self.saidas = []
@@ -231,6 +252,7 @@ class Manipulador():
         self.Stack.set_visible_child_name('view_variaveis')
         for row in aux:
             self.modelo_armazenamento.append((row[0], False, False, 0, 0))
+
 
     def on_Input_toggled(self, widget, path):
         self.modelo_armazenamento[path][1] = not self.modelo_armazenamento[path][1]
@@ -316,8 +338,13 @@ class Manipulador():
         max_dep = int(self.max_depth.get_text())
         n_estim = int(self.N_estimator.get_text())
 
-        self.teste = self.alg_IA.tipos['Dec_Tree'](self.base_aux, max_dep, n_estim, self.n_cl,
+        self.resultados_dt = self.alg_IA.tipos['Dec_Tree'](self.base_aux, max_dep, n_estim, self.n_cl,
                                                    self.entradas_label, self.saidas_label)
+
+
+
+        for i in range(len(self.resultados_dt[0])):
+            self.lista_dt.append((self.saidas_label[i],np.mean(np.asarray(self.resultados_dt[:][i]))))
 
     def on_estimar_clicked(self, button):
         self.Stack.set_visible_child_name('view_estima')
@@ -344,6 +371,23 @@ class Manipulador():
     def on_mostrar_header_clicked(self, button):
         self.modelo_armazenamento.clear()
         self.modelo_armazenamento.append(('teste'))
+
+    def on_analise_grafica_clicked(self,button):
+
+        fig = Figure(figsize=(60, 25), dpi=100)
+        ax = fig.add_subplot(111)
+
+        x = np.linspace(0, 10, 100)
+
+        ax.plot(x, np.sin(x))
+
+        self.canvas = FigureCanvas(fig)
+        self.grafico.add(self.canvas)
+        self.janela_grafico.show_all()
+
+    def on_graf_destroy_event(self):
+        self.grafico.remove(self.grafico,gtk_bin_get_child(GTK_BIN(self.grafico)))
+        gtk_application.remove_window(self.grafico)
 
 
 Builder = Gtk.Builder()
