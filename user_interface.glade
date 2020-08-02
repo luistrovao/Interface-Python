@@ -74,6 +74,12 @@
       <column type="gfloat"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="liststore6">
+    <columns>
+      <!-- column-name Output -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Login</property>
@@ -1625,9 +1631,17 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkComboBox">
+                      <object class="GtkComboBox" id="combo_box">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="model">liststore6</property>
+                        <signal name="changed" handler="on_combo_box_changed" swapped="no"/>
+                        <child>
+                          <object class="GtkCellRendererText" id="escolha_outputs"/>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>

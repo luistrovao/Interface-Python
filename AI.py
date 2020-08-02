@@ -9,9 +9,6 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor
 import matplotlib.pyplot as plt
 
-import plotly.express as px
-
-
 from matplotlib.figure import Figure
 from numpy import arange, pi, random, linspace
 import matplotlib.cm as cm
@@ -177,7 +174,7 @@ class Manipulador():
         self.lista_entradas: Gtk.ListStore = Builder.get_object("liststore2")
         self.lista_saidas: Gtk.ListStore = Builder.get_object("liststore3")
         self.lista_dt: Gtk.ListStore = Builder.get_object("liststore5")
-
+        self.escolha_outputs: Gtk.ListStore = Builder.get_object("liststore6")
         self.epocas: Gtk.Entry = Builder.get_object("rna_epochs")
         self.BS: Gtk.Entry = Builder.get_object("rna_BS")
         self.layer1: Gtk.Entry = Builder.get_object("rna_1cam")
@@ -186,8 +183,11 @@ class Manipulador():
         self.max_depth: Gtk.Entry = Builder.get_object("max_dep")
         self.N_estimator: Gtk.Entry = Builder.get_object("n_estimators")
 
+        self.combo_box: Gtk.ComboBox = Builder.get_object("combo_box")
+
         self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
         self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
+
 
         self.grafico = Builder.get_object('graf')
         self.janela_grafico = Builder.get_object('grafico')
@@ -290,6 +290,7 @@ class Manipulador():
                 self.lista_saidas.append([self.modelo_armazenamento[i][0]])
                 self.minimas.append(self.modelo_armazenamento[i][3])
                 self.maximas.append(self.modelo_armazenamento[i][4])
+                self.escolha_outputs.append([self.modelo_armazenamento[i][0]])
 
         aux = np.logical_or(self.entradas, self.saidas)
         self.maximas = np.asarray(self.maximas).reshape(1, len(self.maximas))
@@ -332,6 +333,7 @@ class Manipulador():
 
         for i in range(len(self.resultados_dt[0])):
             self.lista_dt.append((self.saidas_label[i],np.mean(np.asarray(self.resultados_dt[:][i]))))
+            print(self.resultados_dt.columns)
 
     def on_estimar_clicked(self, button):
         self.Stack.set_visible_child_name('view_estima')
@@ -367,25 +369,22 @@ class Manipulador():
         amostras = len(self.previsoes_dt[0][0])
         X = range(amostras)
 
-        fig1 = px.line(x=X, y=self.dados_dt[0][1].loc[:, self.saidas_label[0]])
-
-        ax.plot(X, self.dados_dt[0][1].loc[:, self.saidas_label[0]], color="crimson", label="Dados Reais", linewidth=0.5)
-        ax.plot(X,self.previsoes_dt[0][0] , color="dodgerblue",
+        ax.plot(X, self.dados_dt[0][1].loc[:, self.lista_saidas[self.combo_box.get_active()][0]], color="crimson", label="Dados Reais", linewidth=0.5)
+        ax.plot(X,self.previsoes_dt[0][self.combo_box.get_active()] , color="dodgerblue",
                  alpha = 0.9,c="red", linestyle='dashed', label="Dados do Modelo", linewidth = 0.5)
         ax.grid(True)
         ax.legend()
 
-        self.canvas = FigureCanvas(fig1)
+        self.canvas = FigureCanvas(fig)
         self.grafico.add(self.canvas)
         self.janela_grafico.show_all()
-
-
-        # figuras.append(plt.figure(figsize=(6, 2.5)))
-        # plt.
 
     def on_graf_destroy_event(self):
         self.grafico.remove(self.grafico,gtk_bin_get_child(GTK_BIN(self.grafico)))
         gtk_application.remove_window(self.grafico)
+
+    def on_combo_box_changed(self,combo):
+        print(self.lista_saidas[self.combo_box.get_active()][0])
 
 
 Builder = Gtk.Builder()
