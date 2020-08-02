@@ -9,6 +9,9 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor
 import matplotlib.pyplot as plt
 
+import plotly.express as px
+
+
 from matplotlib.figure import Figure
 from numpy import arange, pi, random, linspace
 import matplotlib.cm as cm
@@ -110,27 +113,12 @@ class algoritmos_AI():
                 resultados[i][k] = np.mean(100 * abs(np.asarray(dados[i][1].loc[:, saidas[k]]) -
                                                      previsoes[i][k]) / np.asarray(dados[i][1].loc[:, saidas[k]]))
 
-                #nome_modelo = 'modelo_DT_dsm_' + str(i) + '-' + str(k) + '.pkl'
-                #fullname = os.path.join(outdir, nome_modelo)
-                #with open(fullname, 'wb') as file:
-                #    pickle.dump(regr, file)
-                #amostras = len(previsoes)
-                #X = range(amostras)
-                #figuras.append(plt.figure(figsize=(6, 2.5)))
-                #plt.plot(X, dados[i][1].loc[:, saidas[k]], color="crimson",label="Dados Reais", linewidth=0.5)
-                #plt.plot(X,previsoes[i][k] , color="dodgerblue",
-                #         alpha = 0.9,c="red", linestyle='dashed', label="Dados do Modelo", linewidth = 0.5)
-                #plt.grid(True)
-                #plt.xlabel("Dados")
-                #plt.ylabel("Potência Ativa")
-                #plt.title("Neural Network Regression")
-                #plt.legend()
                 k += 1
             k = 0
             i += 1
 
 
-        return resultados
+        return dados, previsoes, resultados
 
 
 class filtros():
@@ -338,9 +326,8 @@ class Manipulador():
         max_dep = int(self.max_depth.get_text())
         n_estim = int(self.N_estimator.get_text())
 
-        self.resultados_dt = self.alg_IA.tipos['Dec_Tree'](self.base_aux, max_dep, n_estim, self.n_cl,
+        [self.dados_dt, self.previsoes_dt, self.resultados_dt] = self.alg_IA.tipos['Dec_Tree'](self.base_aux, max_dep, n_estim, self.n_cl,
                                                    self.entradas_label, self.saidas_label)
-
 
 
         for i in range(len(self.resultados_dt[0])):
@@ -374,16 +361,27 @@ class Manipulador():
 
     def on_analise_grafica_clicked(self,button):
 
-        fig = Figure(figsize=(60, 25), dpi=100)
-        ax = fig.add_subplot(111)
+        fig, ax = plt.subplots()
+        ax.set_title('A single plot')
+        ax.set(xlabel='Dados', ylabel='Output Escolhida')
+        amostras = len(self.previsoes_dt[0][0])
+        X = range(amostras)
 
-        x = np.linspace(0, 10, 100)
+        fig1 = px.line(x=X, y=self.dados_dt[0][1].loc[:, self.saidas_label[0]])
 
-        ax.plot(x, np.sin(x))
+        ax.plot(X, self.dados_dt[0][1].loc[:, self.saidas_label[0]], color="crimson", label="Dados Reais", linewidth=0.5)
+        ax.plot(X,self.previsoes_dt[0][0] , color="dodgerblue",
+                 alpha = 0.9,c="red", linestyle='dashed', label="Dados do Modelo", linewidth = 0.5)
+        ax.grid(True)
+        ax.legend()
 
-        self.canvas = FigureCanvas(fig)
+        self.canvas = FigureCanvas(fig1)
         self.grafico.add(self.canvas)
         self.janela_grafico.show_all()
+
+
+        # figuras.append(plt.figure(figsize=(6, 2.5)))
+        # plt.
 
     def on_graf_destroy_event(self):
         self.grafico.remove(self.grafico,gtk_bin_get_child(GTK_BIN(self.grafico)))
