@@ -5,6 +5,7 @@
   <object class="GtkEntryBuffer" id="entrybuffer1"/>
   <object class="GtkWindow" id="grafico">
     <property name="can_focus">False</property>
+    <property name="window_position">center</property>
     <child>
       <object class="GtkScrolledWindow" id="graf">
         <property name="width_request">600</property>
@@ -13,11 +14,11 @@
         <property name="can_focus">True</property>
         <property name="hexpand">True</property>
         <property name="vexpand">True</property>
+        <property name="resize_mode">queue</property>
         <property name="window_placement">top-right</property>
         <property name="shadow_type">in</property>
         <property name="propagate_natural_width">True</property>
         <property name="propagate_natural_height">True</property>
-        <signal name="destroy-event" handler="on_graf_destroy_event" swapped="no"/>
         <child>
           <placeholder/>
         </child>
@@ -41,9 +42,9 @@
       <!-- column-name Output -->
       <column type="gboolean"/>
       <!-- column-name Lim_Inferior -->
-      <column type="gfloat"/>
+      <column type="gchararray"/>
       <!-- column-name Lim_Superior -->
-      <column type="gfloat"/>
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore2">
@@ -63,7 +64,7 @@
       <!-- column-name erro_cluster_text -->
       <column type="gchararray"/>
       <!-- column-name erro_cluster_num -->
-      <column type="gfloat"/>
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore5">
@@ -71,7 +72,7 @@
       <!-- column-name erro_cluster_text -->
       <column type="gchararray"/>
       <!-- column-name erro_cluster_num -->
-      <column type="gfloat"/>
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore6">
@@ -338,6 +339,7 @@
                     <property name="propagate_natural_width">True</property>
                     <child>
                       <object class="GtkTreeView" id="In_Out">
+                        <property name="name">in_out</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_STRUCTURE_MASK</property>
@@ -425,7 +427,7 @@
                         <child>
                           <object class="GtkTreeViewColumn" id="Lim_Sup">
                             <property name="resizable">True</property>
-                            <property name="sizing">autosize</property>
+                            <property name="sizing">fixed</property>
                             <property name="title" translatable="yes">Lim. Superior</property>
                             <property name="expand">True</property>
                             <child>
@@ -673,6 +675,7 @@
                             <property name="margin_top">5</property>
                             <property name="margin_bottom">5</property>
                             <property name="model">liststore2</property>
+                            <property name="enable_grid_lines">both</property>
                             <child internal-child="selection">
                               <object class="GtkTreeSelection"/>
                             </child>
@@ -714,6 +717,7 @@
                             <property name="margin_top">5</property>
                             <property name="margin_bottom">5</property>
                             <property name="model">liststore3</property>
+                            <property name="enable_grid_lines">both</property>
                             <child internal-child="selection">
                               <object class="GtkTreeSelection"/>
                             </child>
@@ -1186,6 +1190,7 @@
                         <property name="margin_top">10</property>
                         <property name="margin_bottom">10</property>
                         <property name="model">liststore4</property>
+                        <property name="enable_grid_lines">both</property>
                         <child internal-child="selection">
                           <object class="GtkTreeSelection"/>
                         </child>
@@ -1575,6 +1580,7 @@
                         <property name="hexpand">False</property>
                         <property name="vexpand">False</property>
                         <property name="model">liststore5</property>
+                        <property name="enable_grid_lines">both</property>
                         <child internal-child="selection">
                           <object class="GtkTreeSelection"/>
                         </child>
@@ -1614,11 +1620,14 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="orientation">vertical</property>
-                    <property name="homogeneous">True</property>
                     <child>
                       <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="margin_start">5</property>
+                        <property name="margin_end">5</property>
+                        <property name="margin_top">5</property>
+                        <property name="margin_bottom">5</property>
                         <property name="label" translatable="yes">Definir Output</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
@@ -1634,6 +1643,10 @@
                       <object class="GtkComboBox" id="combo_box">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="margin_start">5</property>
+                        <property name="margin_end">5</property>
+                        <property name="margin_top">5</property>
+                        <property name="margin_bottom">5</property>
                         <property name="model">liststore6</property>
                         <signal name="changed" handler="on_combo_box_changed" swapped="no"/>
                         <child>
@@ -1655,6 +1668,10 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="margin_start">5</property>
+                        <property name="margin_end">5</property>
+                        <property name="margin_top">5</property>
+                        <property name="margin_bottom">5</property>
                         <signal name="clicked" handler="on_analise_grafica_clicked" swapped="no"/>
                       </object>
                       <packing>
