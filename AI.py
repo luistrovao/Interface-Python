@@ -188,10 +188,6 @@ class Manipulador():
         self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
         self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
 
-
-        self.grafico = Builder.get_object('graf')
-        self.janela_grafico = Builder.get_object('grafico')
-
         self.entradas = []
         self.saidas = []
         self.maximas = []
@@ -239,8 +235,7 @@ class Manipulador():
         aux = aux.reshape(len(aux), 1)
         self.Stack.set_visible_child_name('view_variaveis')
         for row in aux:
-            self.modelo_armazenamento.append((row[0], False, False, 0, 0))
-
+            self.modelo_armazenamento.append((row[0], False, False, " ", " "))
 
     def on_Input_toggled(self, widget, path):
         self.modelo_armazenamento[path][1] = not self.modelo_armazenamento[path][1]
@@ -263,8 +258,8 @@ class Manipulador():
         for i in range(len(self.modelo_armazenamento)):
             if self.entradas[i] == True or self.saidas[i] == True:
                 # TRATAR ERRO QUARTILES QUANDO VALORES DE STRING
-                self.modelo_armazenamento[i][3] = lim_inf[i - 1]
-                self.modelo_armazenamento[i][4] = lim_sup[i - 1]
+                self.modelo_armazenamento[i][3] = str(round(lim_inf[i - 1],2))
+                self.modelo_armazenamento[i][4] = str(round(lim_sup[i - 1],2))
 
     def on_lim_sup_edited(self, widget, path, text):
         self.modelo_armazenamento[path][4] = float(text)
@@ -282,14 +277,14 @@ class Manipulador():
             if self.entradas[i] == True:
                 self.entradas_label.append(self.modelo_armazenamento[i][0])
                 self.lista_entradas.append([self.modelo_armazenamento[i][0]])
-                self.minimas.append(self.modelo_armazenamento[i][3])
-                self.maximas.append(self.modelo_armazenamento[i][4])
+                self.minimas.append(float(self.modelo_armazenamento[i][3]))
+                self.maximas.append(float(self.modelo_armazenamento[i][4]))
 
             if self.saidas[i] == True:
                 self.saidas_label.append(self.modelo_armazenamento[i][0])
                 self.lista_saidas.append([self.modelo_armazenamento[i][0]])
-                self.minimas.append(self.modelo_armazenamento[i][3])
-                self.maximas.append(self.modelo_armazenamento[i][4])
+                self.minimas.append(float(self.modelo_armazenamento[i][3]))
+                self.maximas.append(float(self.modelo_armazenamento[i][4]))
                 self.escolha_outputs.append([self.modelo_armazenamento[i][0]])
 
         aux = np.logical_or(self.entradas, self.saidas)
@@ -330,10 +325,13 @@ class Manipulador():
         [self.dados_dt, self.previsoes_dt, self.resultados_dt] = self.alg_IA.tipos['Dec_Tree'](self.base_aux, max_dep, n_estim, self.n_cl,
                                                    self.entradas_label, self.saidas_label)
 
+        self.resultados_dt = pd.DataFrame(self.resultados_dt)
 
-        for i in range(len(self.resultados_dt[0])):
-            self.lista_dt.append((self.saidas_label[i],np.mean(np.asarray(self.resultados_dt[:][i]))))
-            print(self.resultados_dt.columns)
+        i = 0
+        while i < len(self.saidas_label):
+            self.lista_dt.append((self.saidas_label[i],str(round(np.mean(np.asarray(self.resultados_dt[:][i])),2))))
+            print(np.mean(np.asarray(self.resultados_dt[:][i])))
+            i+=1
 
     def on_estimar_clicked(self, button):
         self.Stack.set_visible_child_name('view_estima')
@@ -363,28 +361,29 @@ class Manipulador():
 
     def on_analise_grafica_clicked(self,button):
 
+        grafico = Builder.get_object('graf')
+        janela_grafico = Builder.get_object('grafico')
+
         fig, ax = plt.subplots()
-        ax.set_title('A single plot')
+        ax.set_title('Dados Teste vs Dados Previstos')
         ax.set(xlabel='Dados', ylabel='Output Escolhida')
         amostras = len(self.previsoes_dt[0][0])
         X = range(amostras)
 
         ax.plot(X, self.dados_dt[0][1].loc[:, self.lista_saidas[self.combo_box.get_active()][0]], color="crimson", label="Dados Reais", linewidth=0.5)
         ax.plot(X,self.previsoes_dt[0][self.combo_box.get_active()] , color="dodgerblue",
-                 alpha = 0.9,c="red", linestyle='dashed', label="Dados do Modelo", linewidth = 0.5)
+                 alpha = 0.9, c ="red", linestyle='dashed', label="Dados do Modelo", linewidth = 0.5)
         ax.grid(True)
         ax.legend()
 
-        self.canvas = FigureCanvas(fig)
-        self.grafico.add(self.canvas)
-        self.janela_grafico.show_all()
+        canvas = FigureCanvas(fig)
 
-    def on_graf_destroy_event(self):
-        self.grafico.remove(self.grafico,gtk_bin_get_child(GTK_BIN(self.grafico)))
-        gtk_application.remove_window(self.grafico)
+        grafico.add_with_viewport(canvas)
+        janela_grafico.show_all()
 
     def on_combo_box_changed(self,combo):
         print(self.lista_saidas[self.combo_box.get_active()][0])
+
 
 
 Builder = Gtk.Builder()
