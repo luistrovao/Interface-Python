@@ -3,6 +3,31 @@
 <interface>
   <requires lib="gtk+" version="3.22"/>
   <object class="GtkEntryBuffer" id="entrybuffer1"/>
+  <object class="GtkWindow" id="grafico">
+    <property name="can_focus">False</property>
+    <property name="window_position">center</property>
+    <child>
+      <object class="GtkScrolledWindow" id="graf">
+        <property name="width_request">600</property>
+        <property name="height_request">300</property>
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <property name="resize_mode">queue</property>
+        <property name="window_placement">top-right</property>
+        <property name="shadow_type">in</property>
+        <property name="propagate_natural_width">True</property>
+        <property name="propagate_natural_height">True</property>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
+  </object>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -17,9 +42,9 @@
       <!-- column-name Output -->
       <column type="gboolean"/>
       <!-- column-name Lim_Inferior -->
-      <column type="gfloat"/>
+      <column type="gchararray"/>
       <!-- column-name Lim_Superior -->
-      <column type="gfloat"/>
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore2">
@@ -39,7 +64,7 @@
       <!-- column-name erro_cluster_text -->
       <column type="gchararray"/>
       <!-- column-name erro_cluster_num -->
-      <column type="gfloat"/>
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore5">
@@ -47,7 +72,13 @@
       <!-- column-name erro_cluster_text -->
       <column type="gchararray"/>
       <!-- column-name erro_cluster_num -->
-      <column type="gfloat"/>
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore6">
+    <columns>
+      <!-- column-name Output -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkWindow" id="main_window">
@@ -252,6 +283,7 @@
                 <property name="margin_top">5</property>
                 <property name="margin_bottom">5</property>
                 <property name="editable">False</property>
+                <property name="text" translatable="yes">C:\msys64\home\luist\Interface-Python\Teste.csv</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -307,6 +339,7 @@
                     <property name="propagate_natural_width">True</property>
                     <child>
                       <object class="GtkTreeView" id="In_Out">
+                        <property name="name">in_out</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_STRUCTURE_MASK</property>
@@ -394,7 +427,7 @@
                         <child>
                           <object class="GtkTreeViewColumn" id="Lim_Sup">
                             <property name="resizable">True</property>
-                            <property name="sizing">autosize</property>
+                            <property name="sizing">fixed</property>
                             <property name="title" translatable="yes">Lim. Superior</property>
                             <property name="expand">True</property>
                             <child>
@@ -642,6 +675,7 @@
                             <property name="margin_top">5</property>
                             <property name="margin_bottom">5</property>
                             <property name="model">liststore2</property>
+                            <property name="enable_grid_lines">both</property>
                             <child internal-child="selection">
                               <object class="GtkTreeSelection"/>
                             </child>
@@ -683,6 +717,7 @@
                             <property name="margin_top">5</property>
                             <property name="margin_bottom">5</property>
                             <property name="model">liststore3</property>
+                            <property name="enable_grid_lines">both</property>
                             <child internal-child="selection">
                               <object class="GtkTreeSelection"/>
                             </child>
@@ -1155,6 +1190,7 @@
                         <property name="margin_top">10</property>
                         <property name="margin_bottom">10</property>
                         <property name="model">liststore4</property>
+                        <property name="enable_grid_lines">both</property>
                         <child internal-child="selection">
                           <object class="GtkTreeSelection"/>
                         </child>
@@ -1331,7 +1367,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry">
+                      <object class="GtkEntry" id="max_dep">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="valign">center</property>
@@ -1373,7 +1409,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry">
+                      <object class="GtkEntry" id="n_estimators">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="valign">center</property>
@@ -1481,7 +1517,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="volta">
+                          <object class="GtkButton" id="train_tree">
                             <property name="label" translatable="yes">Treinar Árvore</property>
                             <property name="name">Treinar Rede</property>
                             <property name="visible">True</property>
@@ -1489,7 +1525,7 @@
                             <property name="receives_default">True</property>
                             <property name="margin_top">10</property>
                             <property name="margin_bottom">10</property>
-                            <signal name="clicked" handler="on_voltar_clicked" swapped="no"/>
+                            <signal name="clicked" handler="on_train_tree_clicked" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -1523,6 +1559,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="orientation">vertical</property>
+                <property name="homogeneous">True</property>
                 <child>
                   <object class="GtkScrolledWindow">
                     <property name="visible">True</property>
@@ -1543,12 +1580,13 @@
                         <property name="hexpand">False</property>
                         <property name="vexpand">False</property>
                         <property name="model">liststore5</property>
+                        <property name="enable_grid_lines">both</property>
                         <child internal-child="selection">
                           <object class="GtkTreeSelection"/>
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="yes">Cluster Nº</property>
+                            <property name="title" translatable="yes">Saída</property>
                             <child>
                               <object class="GtkCellRendererText" id="erro_cluster_dt_text"/>
                               <attributes>
@@ -1559,7 +1597,7 @@
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="yes">Erro %</property>
+                            <property name="title" translatable="yes">Erro Médio %</property>
                             <child>
                               <object class="GtkCellRendererText" id="erro_cluster_dt_num"/>
                               <attributes>
@@ -1586,15 +1624,11 @@
                       <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="halign">center</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
                         <property name="margin_start">5</property>
                         <property name="margin_end">5</property>
                         <property name="margin_top">5</property>
                         <property name="margin_bottom">5</property>
-                        <property name="label" translatable="yes">Erro Médio de Treinamento</property>
-                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">Definir Output</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                         </attributes>
@@ -1606,24 +1640,44 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkTextView">
-                        <property name="width_request">100</property>
-                        <property name="height_request">20</property>
+                      <object class="GtkComboBox" id="combo_box">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="halign">center</property>
-                        <property name="margin_left">10</property>
-                        <property name="margin_right">10</property>
-                        <property name="margin_start">10</property>
-                        <property name="margin_end">10</property>
-                        <property name="margin_top">10</property>
-                        <property name="margin_bottom">10</property>
-                        <property name="vexpand">False</property>
+                        <property name="can_focus">False</property>
+                        <property name="margin_start">5</property>
+                        <property name="margin_end">5</property>
+                        <property name="margin_top">5</property>
+                        <property name="margin_bottom">5</property>
+                        <property name="model">liststore6</property>
+                        <signal name="changed" handler="on_combo_box_changed" swapped="no"/>
+                        <child>
+                          <object class="GtkCellRendererText" id="escolha_outputs"/>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="analise_grafica">
+                        <property name="label" translatable="yes">Análise Gráfica</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="margin_start">5</property>
+                        <property name="margin_end">5</property>
+                        <property name="margin_top">5</property>
+                        <property name="margin_bottom">5</property>
+                        <signal name="clicked" handler="on_analise_grafica_clicked" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                   </object>
@@ -1889,7 +1943,6 @@
     <property name="name">choose_data</property>
     <property name="can_focus">False</property>
     <property name="type_hint">dialog</property>
-    <signal name="destroy" handler="on_local_base_destroy" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox">
         <property name="can_focus">False</property>
