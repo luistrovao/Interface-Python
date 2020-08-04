@@ -8,10 +8,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor
 import matplotlib.pyplot as plt
-
+import keras
 from matplotlib.figure import Figure
 from numpy import arange, pi, random, linspace
 import matplotlib.cm as cm
+
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 
 # import keras
@@ -57,8 +58,7 @@ class algoritmos_AI():
 
         while i < n_clusters:
             # dados.append(train_test_split(self.classes[i], test_size=0.2))
-            print(dados[0][0].loc[:, entradas])
-            print(dados[i][0].iloc[:,0:N_inputs])
+
 
             regressor = Sequential()
             regressor.add(Dense(units=layer1, activation='relu', input_dim=39))
@@ -109,7 +109,6 @@ class algoritmos_AI():
                 previsoes[i][k] = regr.predict(dados[i][1].loc[:, entradas])
                 resultados[i][k] = np.mean(100 * abs(np.asarray(dados[i][1].loc[:, saidas[k]]) -
                                                      previsoes[i][k]) / np.asarray(dados[i][1].loc[:, saidas[k]]))
-
                 k += 1
             k = 0
             i += 1
@@ -188,12 +187,6 @@ class Manipulador():
         self.coluna_LI: Gtk.TreeViewColumn = Builder.get_object("lim_inf")
         self.coluna_LS: Gtk.TreeViewColumn = Builder.get_object("lim_sup")
 
-        self.entradas = []
-        self.saidas = []
-        self.maximas = []
-        self.minimas = []
-        self.entradas_label = []
-        self.saidas_label = []
 
     def on_button_login_clicked(self, button):
         email = Builder.get_object("email").get_text()
@@ -244,8 +237,8 @@ class Manipulador():
         self.modelo_armazenamento[path][2] = not self.modelo_armazenamento[path][2]
 
     def on_aplicar_clicked(self, button):
-        self.entradas.clear()
-        self.saidas.clear()
+        self.entradas = []
+        self.saidas = []
 
         self.filtro = filtros()
         nao_num = self.filtro.funcoes['nao_numerico'](self.base)
@@ -272,7 +265,14 @@ class Manipulador():
         self.Stack.set_visible_child_name('view_inicial')
 
     def on_avancar_clicked(self, button):
+
+        self.entradas_label = []
+        self.saidas_label = []
+        self.maximas = []
+        self.minimas = []
+
         self.Stack.set_visible_child_name('view_base')
+
         for i in range(len(self.modelo_armazenamento)):
             if self.entradas[i] == True:
                 self.entradas_label.append(self.modelo_armazenamento[i][0])
@@ -288,12 +288,12 @@ class Manipulador():
                 self.escolha_outputs.append([self.modelo_armazenamento[i][0]])
 
         aux = np.logical_or(self.entradas, self.saidas)
-        self.maximas = np.asarray(self.maximas).reshape(1, len(self.maximas))
-        self.minimas = np.asarray(self.minimas).reshape(1, len(self.minimas))
+        maximas = np.asarray(self.maximas).reshape(1, len(self.maximas))
+        minimas = np.asarray(self.minimas).reshape(1, len(self.minimas))
 
         self.base_aux = self.base.drop(self.base.iloc[:, ~aux], axis=1)
-        self.base_aux = self.base_aux.where(self.base_aux < self.maximas)
-        self.base_aux = self.base_aux.where(self.base_aux > self.minimas)
+        self.base_aux = self.base_aux.where(self.base_aux < maximas)
+        self.base_aux = self.base_aux.where(self.base_aux > minimas)
         self.base_aux.dropna(inplace=True)
 
         self.n_cl = int(self.N_cluster.get_text())
@@ -330,14 +330,19 @@ class Manipulador():
         i = 0
         while i < len(self.saidas_label):
             self.lista_dt.append((self.saidas_label[i],str(round(np.mean(np.asarray(self.resultados_dt[:][i])),2))))
-            print(np.mean(np.asarray(self.resultados_dt[:][i])))
             i+=1
 
     def on_estimar_clicked(self, button):
         self.Stack.set_visible_child_name('view_estima')
 
     def on_escolhe_in_out_clicked(self, button):
-        self.Stack.set_visible_child_name('view_variaveis')
+        self.modelo_armazenamento.clear()
+        self.lista_entradas.clear()
+        self.lista_saidas.clear()
+        self.lista_dt.clear()
+        self.escolha_outputs.clear()
+        self.N_cluster.set_text(str(1))
+        self.Stack.set_visible_child_name('view_inicial')
 
     def on_voltar_clicked(self, button):
         self.Stack.set_visible_child_name('view_base')
@@ -361,8 +366,8 @@ class Manipulador():
 
     def on_analise_grafica_clicked(self,button):
 
-        grafico = Builder.get_object('graf')
-        janela_grafico = Builder.get_object('grafico')
+        self.grafico = Builder.get_object('graf')
+        self.janela_grafico = Builder.get_object('grafico')
 
         fig, ax = plt.subplots()
         ax.set_title('Dados Teste vs Dados Previstos')
@@ -378,13 +383,11 @@ class Manipulador():
 
         canvas = FigureCanvas(fig)
 
-        grafico.add_with_viewport(canvas)
-        janela_grafico.show_all()
+        self.grafico.add(canvas)
+        self.janela_grafico.show_all()
 
-    def on_combo_box_changed(self,combo):
-        print(self.lista_saidas[self.combo_box.get_active()][0])
-
-
+    def on_grafico_destroy_event(self):
+        self.grafico.remove(self.grafico.get_child())
 
 Builder = Gtk.Builder()
 Builder.add_from_file("user_interface.glade")

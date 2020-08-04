@@ -6,6 +6,7 @@
   <object class="GtkWindow" id="grafico">
     <property name="can_focus">False</property>
     <property name="window_position">center</property>
+    <signal name="destroy-event" handler="on_grafico_destroy_event" swapped="no"/>
     <child>
       <object class="GtkScrolledWindow" id="graf">
         <property name="width_request">600</property>
@@ -81,6 +82,22 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="liststore7">
+    <columns>
+      <!-- column-name entradas -->
+      <column type="gchararray"/>
+      <!-- column-name valor -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore8">
+    <columns>
+      <!-- column-name entradas -->
+      <column type="gchararray"/>
+      <!-- column-name valor -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Login</property>
@@ -105,7 +122,7 @@
               <object class="GtkImage">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="pixbuf">..\PJ5\static\imagens\robot.ico</property>
+                <property name="pixbuf">static\imagens\programa-alianca.ico</property>
                 <property name="pixel_size">100</property>
               </object>
               <packing>
@@ -118,7 +135,10 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">INTERFACE AI PROGRAMA ALIANÇA</property>
+                <property name="label" translatable="yes">INTERFACE AI</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1648,7 +1668,6 @@
                         <property name="margin_top">5</property>
                         <property name="margin_bottom">5</property>
                         <property name="model">liststore6</property>
-                        <signal name="changed" handler="on_combo_box_changed" swapped="no"/>
                         <child>
                           <object class="GtkCellRendererText" id="escolha_outputs"/>
                           <attributes>
@@ -1784,8 +1803,9 @@
                             <property name="margin_end">5</property>
                             <property name="margin_top">5</property>
                             <property name="margin_bottom">5</property>
-                            <property name="model">liststore2</property>
+                            <property name="model">liststore7</property>
                             <property name="search_column">0</property>
+                            <property name="enable_grid_lines">both</property>
                             <child internal-child="selection">
                               <object class="GtkTreeSelection"/>
                             </child>
@@ -1794,9 +1814,20 @@
                                 <property name="sizing">autosize</property>
                                 <property name="title" translatable="yes">Entradas</property>
                                 <child>
-                                  <object class="GtkCellRendererText" id="entradas_sel1"/>
+                                  <object class="GtkCellRendererText" id="entradas_estim_in"/>
                                   <attributes>
                                     <attribute name="text">0</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn">
+                                <property name="title" translatable="yes">Valores</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="valores_estim_in"/>
+                                  <attributes>
+                                    <attribute name="text">1</attribute>
                                   </attributes>
                                 </child>
                               </object>
@@ -1827,8 +1858,9 @@
                             <property name="margin_end">5</property>
                             <property name="margin_top">5</property>
                             <property name="margin_bottom">5</property>
-                            <property name="model">liststore3</property>
+                            <property name="model">liststore8</property>
                             <property name="search_column">0</property>
+                            <property name="enable_grid_lines">both</property>
                             <child internal-child="selection">
                               <object class="GtkTreeSelection"/>
                             </child>
@@ -1837,10 +1869,18 @@
                                 <property name="sizing">autosize</property>
                                 <property name="title" translatable="yes">Saídas</property>
                                 <child>
-                                  <object class="GtkCellRendererText" id="saidas_sel1"/>
+                                  <object class="GtkCellRendererText" id="saidas_estim"/>
                                   <attributes>
                                     <attribute name="text">0</attribute>
                                   </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn">
+                                <property name="title" translatable="yes">Valores</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="val_estim_out"/>
                                 </child>
                               </object>
                             </child>
