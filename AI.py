@@ -8,10 +8,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor
 import matplotlib.pyplot as plt
-
+import keras
 from matplotlib.figure import Figure
 from numpy import arange, pi, random, linspace
 import matplotlib.cm as cm
+
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 
 # import keras
@@ -108,7 +109,6 @@ class algoritmos_AI():
                 previsoes[i][k] = regr.predict(dados[i][1].loc[:, entradas])
                 resultados[i][k] = np.mean(100 * abs(np.asarray(dados[i][1].loc[:, saidas[k]]) -
                                                      previsoes[i][k]) / np.asarray(dados[i][1].loc[:, saidas[k]]))
-
                 k += 1
             k = 0
             i += 1
@@ -366,8 +366,8 @@ class Manipulador():
 
     def on_analise_grafica_clicked(self,button):
 
-        grafico = Builder.get_object('graf')
-        janela_grafico = Builder.get_object('grafico')
+        self.grafico = Builder.get_object('graf')
+        self.janela_grafico = Builder.get_object('grafico')
 
         fig, ax = plt.subplots()
         ax.set_title('Dados Teste vs Dados Previstos')
@@ -383,13 +383,11 @@ class Manipulador():
 
         canvas = FigureCanvas(fig)
 
-        grafico.add_with_viewport(canvas)
-        janela_grafico.show_all()
+        self.grafico.add(canvas)
+        self.janela_grafico.show_all()
 
-    def on_combo_box_changed(self,combo):
-        print(self.lista_saidas[self.combo_box.get_active()][0])
-
-
+    def on_grafico_destroy_event(self):
+        self.grafico.remove(self.grafico.get_child())
 
 Builder = Gtk.Builder()
 Builder.add_from_file("user_interface.glade")

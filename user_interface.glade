@@ -6,6 +6,7 @@
   <object class="GtkWindow" id="grafico">
     <property name="can_focus">False</property>
     <property name="window_position">center</property>
+    <signal name="destroy-event" handler="on_grafico_destroy_event" swapped="no"/>
     <child>
       <object class="GtkScrolledWindow" id="graf">
         <property name="width_request">600</property>
@@ -121,7 +122,7 @@
               <object class="GtkImage">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="pixbuf">..\PJ5\static\imagens\robot.ico</property>
+                <property name="pixbuf">static\imagens\programa-alianca.ico</property>
                 <property name="pixel_size">100</property>
               </object>
               <packing>
@@ -134,7 +135,10 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">INTERFACE AI PROGRAMA ALIANÇA</property>
+                <property name="label" translatable="yes">INTERFACE AI</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1664,7 +1668,6 @@
                         <property name="margin_top">5</property>
                         <property name="margin_bottom">5</property>
                         <property name="model">liststore6</property>
-                        <signal name="changed" handler="on_combo_box_changed" swapped="no"/>
                         <child>
                           <object class="GtkCellRendererText" id="escolha_outputs"/>
                           <attributes>
